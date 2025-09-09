@@ -1,3 +1,4 @@
+/* General Styles */
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial;
@@ -7,24 +8,83 @@ body {
   padding: 40px;
   color: #111;
 }
+
 .wrap {
   width: 100%;
-  max-width: 800px;
+  max-width: 1600px;
 }
+
 header {
   text-align: center;
   margin-bottom: 20px;
 }
+
 header h1 {
   font-size: 20px;
   font-weight: 600;
 }
 
+/* Buttons (common style) */
+.btn {
+  padding: 10px 18px;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 14px;
+  border: 0;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease, opacity 0.2s ease, box-shadow 0.2s ease;
+}
+
+.btn:hover {
+  transform: scale(1.05);
+  opacity: 0.9;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.submit-btn {
+  background: #4f67ff;
+  color: #fff;
+}
+
+/* Fetch Section */
+.fetch-section {
+  display: flex;
+  justify-content: center; /* centers the button horizontally */
+  margin-bottom: 24px;     /* spacing below section */
+}
+
+.fetch-section .btn {
+  background: #ff9800;     /* orange color */
+  color: #fff;
+  border: 0;
+  padding: 10px 18px;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease, opacity 0.2s ease, box-shadow 0.2s ease;
+}
+
+.fetch-section .btn:hover {
+  background: #e68a00;     /* darker orange on hover */
+  transform: scale(1.05);
+  opacity: 0.9;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+
+.add-btn {
+  background: #19ca66;
+  color: #fff;
+}
+
+/* Form Row */
 .form-row {
   display: flex;
   gap: 12px;
   margin-bottom: 24px;
 }
+
 .input-text {
   flex: 1;
   padding: 10px 14px;
@@ -32,68 +92,68 @@ header h1 {
   border-radius: 6px;
   font-size: 14px;
 }
-.submit-btn {
-  background: #4f67ff;
-  color: #fff;
-  border: 0;
-  padding: 10px 18px;
-  border-radius: 6px;
-  font-weight: 600;
-  cursor: pointer;
-}
 
+/* Table Section */
 .table-section {
   background: #fff;
   border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+  border-radius: 10px;
+  overflow-x: auto;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.05);
+  font-size: 15px;
 }
-.table-header,
+
+/* Table Header */
+.table-header {
+  display: grid;
+  grid-template-columns: 120px 1fr 140px 100px 100px 110px 120px 140px 100px;
+  padding: 18px 20px;
+  background: #f3f4f6;
+  font-weight: 600;
+  color: #111827;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+/* Table Rows */
 .table-row {
   display: grid;
-  grid-template-columns: 1fr 120px;
-  padding: 14px 16px;
+  grid-template-columns: 120px 1fr 140px 100px 100px 110px 120px 140px 100px;
+  padding: 18px 20px;
   align-items: center;
-}
-.table-header {
-  background: #f9fafb;
-  font-weight: 600;
-  color: #374151;
-  border-bottom: 1px solid #e5e7eb;
-}
-.table-row {
   border-bottom: 1px solid #f0f0f0;
 }
+
 .table-row:last-child {
   border-bottom: 0;
 }
 
+/* Zebra stripes */
+.table-row:nth-child(even) {
+  background: #fafafa;
+}
+
+/* Action Buttons */
 .actions {
   display: flex;
-  gap: 8px;
+  gap: 12px;
   justify-content: flex-end;
 }
+
 .icon-btn {
   background: transparent;
   border: 0;
   cursor: pointer;
-  font-size: 16px;
-}
-.icon-btn:hover {
-  opacity: 0.7;
+  font-size: 18px;
+  transition: transform 0.15s ease;
 }
 
+.icon-btn:hover {
+  transform: scale(1.2);
+  opacity: 0.8;
+}
+
+/* Add button wrapper */
 .add-wrap {
   text-align: right;
   margin-top: 16px;
-}
-.add-btn {
-  background: #19ca66;
-  color: #fff;
-  border: 0;
-  padding: 10px 16px;
-  border-radius: 6px;
-  font-weight: 600;
-  cursor: pointer;
 }

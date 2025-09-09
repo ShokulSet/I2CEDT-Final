@@ -3,28 +3,50 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Sale Helper — Table UI</title>
+    <title>Real Estate Sale Helper</title>
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
     <div class="wrap">
       <header>
-        <h1>Sale Helper</h1>
+        <h1>Real Estate Sale Helper</h1>
       </header>
 
+      <!-- Form Row -->
       <section class="form-row">
         <input type="text" placeholder="Prompt" class="input-text" />
-        <button class="submit-btn">Submit</button>
+        <button class="btn submit-btn">Submit</button>
       </section>
 
+      <!-- See Fetched -->
+      <section class="fetch-section">
+        <button class="btn see-fetched-btn">See Fetched</button>
+      </section>
+
+      <!-- Table Section -->
       <section class="table-section">
         <div class="table-header">
-          <span>Name</span>
+          <span>Price</span>
+          <span>Description</span>
+          <span>Location</span>
+          <span>Type</span>
+          <span>Size</span>
+          <span>Bedrooms</span>
+          <span>Bathrooms</span>
+          <span>Available From</span>
           <span>Action</span>
         </div>
 
+        <!-- Example Rows -->
         <div class="table-row">
-          <span>Example Item 1</span>
+          <span>$1500</span>
+          <span>Modern apartment</span>
+          <span>Bangkok</span>
+          <span>Condo</span>
+          <span>75m²</span>
+          <span>2</span>
+          <span>2</span>
+          <span>2025-10-01</span>
           <span class="actions">
             <button class="icon-btn" title="Edit">✏️</button>
             <button class="icon-btn" title="Delete">🗑️</button>
@@ -32,7 +54,14 @@
         </div>
 
         <div class="table-row">
-          <span>Example Item 2</span>
+          <span>$950</span>
+          <span>Cozy studio</span>
+          <span>Chiang Mai</span>
+          <span>Apartment</span>
+          <span>40m²</span>
+          <span>1</span>
+          <span>1</span>
+          <span>2025-09-15</span>
           <span class="actions">
             <button class="icon-btn" title="Edit">✏️</button>
             <button class="icon-btn" title="Delete">🗑️</button>
@@ -40,7 +69,14 @@
         </div>
 
         <div class="table-row">
-          <span>Example Item 3</span>
+          <span>$2200</span>
+          <span>Family house</span>
+          <span>Phuket</span>
+          <span>House</span>
+          <span>160m²</span>
+          <span>3</span>
+          <span>2</span>
+          <span>2025-11-01</span>
           <span class="actions">
             <button class="icon-btn" title="Edit">✏️</button>
             <button class="icon-btn" title="Delete">🗑️</button>
@@ -48,8 +84,9 @@
         </div>
       </section>
 
+      <!-- Add Button -->
       <div class="add-wrap">
-        <button class="add-btn">+ ADD</button>
+        <button class="btn add-btn">+ Add</button>
       </div>
     </div>
   </body>
