@@ -12,7 +12,7 @@ require('dotenv').config();
 const fs = require('fs');
 const path = require('path');
 const https = require('https');
-const { execFileSync, execFile } = require('child_process');
+const { execFileSync } = require('child_process');
 
 // ======== Config ========
 const CSV_PATH = process.env.CSV_PATH || 'listings.csv';
