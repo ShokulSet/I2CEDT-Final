@@ -1,93 +1,114 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Real Estate Sale Helper</title>
-    <link rel="stylesheet" href="style.css" />
-  </head>
-  <body>
-    <div class="wrap">
-      <header>
-        <h1>Real Estate Sale Helper</h1>
-      </header>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Sale Helper bla bla</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <div class="wrap">
+    <header><h1>Sale Helper bla bla</h1></header>
 
-      <!-- Form Row -->
-      <section class="form-row">
-        <input type="text" placeholder="Prompt" class="input-text" />
-        <button class="btn submit-btn">Submit</button>
-      </section>
+    <!-- Controls -->
+    <section class="controls" aria-label="prompt and actions">
+      <textarea id="prompt" class="prompt" placeholder="prompt"></textarea>
+      <button class="btn primary" id="expandBtn" title="Expand prompt">▼</button>
+      <button class="btn ghost" id="actionBtn" title="Analyze">Action</button>
+    </section>
 
-      <!-- See Fetched -->
-      <section class="fetch-section">
-        <button class="btn see-fetched-btn">See Fetched</button>
-      </section>
-
-      <!-- Table Section -->
-      <section class="table-section">
-        <div class="table-header">
-          <span>Price</span>
-          <span>Description</span>
-          <span>Location</span>
-          <span>Type</span>
-          <span>Size</span>
-          <span>Bedrooms</span>
-          <span>Bathrooms</span>
-          <span>Available From</span>
-          <span>Action</span>
-        </div>
-
-        <!-- Example Rows -->
-        <div class="table-row">
-          <span>$1500</span>
-          <span>Modern apartment</span>
-          <span>Bangkok</span>
-          <span>Condo</span>
-          <span>75m²</span>
-          <span>2</span>
-          <span>2</span>
-          <span>2025-10-01</span>
-          <span class="actions">
-            <button class="icon-btn" title="Edit">✏️</button>
-            <button class="icon-btn" title="Delete">🗑️</button>
-          </span>
-        </div>
-
-        <div class="table-row">
-          <span>$950</span>
-          <span>Cozy studio</span>
-          <span>Chiang Mai</span>
-          <span>Apartment</span>
-          <span>40m²</span>
-          <span>1</span>
-          <span>1</span>
-          <span>2025-09-15</span>
-          <span class="actions">
-            <button class="icon-btn" title="Edit">✏️</button>
-            <button class="icon-btn" title="Delete">🗑️</button>
-          </span>
-        </div>
-
-        <div class="table-row">
-          <span>$2200</span>
-          <span>Family house</span>
-          <span>Phuket</span>
-          <span>House</span>
-          <span>160m²</span>
-          <span>3</span>
-          <span>2</span>
-          <span>2025-11-01</span>
-          <span class="actions">
-            <button class="icon-btn" title="Edit">✏️</button>
-            <button class="icon-btn" title="Delete">🗑️</button>
-          </span>
-        </div>
-      </section>
-
-      <!-- Add Button -->
-      <div class="add-wrap">
-        <button class="btn add-btn">+ Add</button>
+    <!-- Tabs: llm summary / selected table -->
+    <section id="resultPane" hidden>
+      <div class="tabs">
+        <button class="tab active" data-tab="summary">llm summary</button>
+        <button class="tab" data-tab="selected">selected table</button>
       </div>
+
+      <div class="tabPanel" id="tab-summary">
+        <div class="summaryBox" id="summaryBox" aria-live="polite"></div>
+      </div>
+
+      <div class="tabPanel hidden" id="tab-selected">
+        <div class="card">
+          <div class="tableScroll">
+            <table id="selectedTable">
+              <thead>
+                <tr>
+                  <th>#</th><th>Name</th><th>Price (฿)</th>
+                  <th>Rooms</th><th>Size (sqm)</th><th>City</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Property table -->
+    <div class="card">
+      <div class="cardHead">
+        <div class="cardTitle">Properties</div>
+        <div class="searchWrap">
+          <input id="searchInput" type="search" placeholder="Search by name…" />
+        </div>
+      </div>
+
+      <div class="tableScroll">
+        <table id="propTable">
+          <thead>
+            <tr>
+              <th>#</th><th>Name</th><th>Price (฿)</th>
+              <th>Rooms</th><th>Size (sqm)</th><th>City</th>
+              <th class="ta-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <button class="addBtn" id="addBtn" aria-label="Add new property">
+        <span class="addIcon">＋</span><span class="addText">Add Property</span>
+      </button>
     </div>
-  </body>
+  </div>
+
+  <!-- Modal -->
+  <dialog id="editDlg">
+    <form id="propForm">
+      <h3 id="dlgTitle">Add data (Create)</h3>
+      <div class="formGrid">
+        <div class="field"><label>Name</label><input id="name" name="name" required /></div>
+        <div class="field"><label>Price</label><input id="price" name="price" type="number" min="0" required /></div>
+        <div class="field"><label>Rooms</label><input id="rooms" name="rooms" type="number" min="0" required /></div>
+        <div class="field"><label>Size</label><input id="size" name="size" type="number" min="0" required /></div>
+        <div class="field"><label>City</label><input id="city" name="city" /></div>
+        <div class="field field-span2"><label>Description</label><textarea id="desc" name="desc" rows="3"></textarea></div>
+      </div>
+      <div class="modalFooter">
+        <button type="button" class="btn" id="cancelBtn">Cancel</button>
+        <button class="btn warn" id="submitBtn">Add</button>
+      </div>
+    </form>
+  </dialog>
+
+  <template id="rowTmpl">
+    <tr>
+      <td class="rowIndex"></td>
+      <td class="rowName"></td>
+      <td class="rowPrice"></td>
+      <td class="rowRooms"></td>
+      <td class="rowSize"></td>
+      <td class="rowCity"></td>
+      <td>
+        <div class="actions">
+          <button class="iconBtn editBtn" title="Edit">✏️</button>
+          <button class="iconBtn danger delBtn" title="Delete">🗑️</button>
+        </div>
+      </td>
+    </tr>
+  </template>
+
+  <script type="module" src="./scripts/main.js"></script>
+</body>
 </html>

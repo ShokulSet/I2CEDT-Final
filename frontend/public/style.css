@@ -1,159 +1,144 @@
-/* General Styles */
-body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial;
-  background: #fafafa;
-  display: flex;
-  justify-content: center;
-  padding: 40px;
-  color: #111;
+:root{
+  --bg:#f6f7fb;--card:#fff;--ink:#18212f;--muted:#6b7280;--primary:#5562ff;--primary-ink:#fff;
+  --danger:#e11d48;--ok:#22c55e;--border:#e5e7eb;--shadow:0 8px 24px rgba(0,0,0,.08);
+  --radius:16px;--row-h:48px
+}
+*{box-sizing:border-box}
+body{margin:0;background:linear-gradient(180deg,#f9fbff, #f1f4ff);color:var(--ink);font:16px/1.5 system-ui}
+.wrap{max-width:1200px;margin:0 auto;padding:24px}
+header{text-align:center;margin-bottom:16px}
+header h1{margin:0;font-weight:800;letter-spacing:.2px}
+
+.controls{
+  display:grid;grid-template-columns:1fr auto auto;gap:12px;margin:16px 0 20px;
+}
+.prompt{
+  width:100%;min-height:120px;font-size:1.2rem;resize:vertical;
+  border:1px solid var(--border);border-radius:14px;padding:14px 16px;background:#f2f5ff77;
+  outline:none;transition:.15s
+}
+.prompt:focus{box-shadow:0 0 0 3px #5562ff2a;border-color:#5562ff55}
+.prompt.expanded{min-height:220px;font-size:1.375rem}
+
+.btn{
+  border:0;border-radius:12px;padding:10px 14px;font-weight:700;cursor:pointer;box-shadow:var(--shadow);
+  transform:translateZ(0);transition:transform .1s ease, box-shadow .2s ease, opacity .2s
+}
+.btn:hover{transform:translateY(-1px)}
+.btn:active{transform:translateY(0)}
+.btn.primary{background:linear-gradient(135deg,#5a67ff,#3d4bff);color:var(--primary-ink)}
+.btn.ghost{background:#eef1ff;color:#2532ff}
+.btn.warn{background:#fbbf24;color:#111}
+
+.card{
+  background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+  box-shadow:var(--shadow);padding:10px 10px 64px;position:relative
 }
 
-.wrap {
-  width: 100%;
-  max-width: 1600px;
+/* Card header with Search (top-right) */
+.cardHead{
+  display:flex;align-items:center;justify-content:space-between;padding:6px 6px 10px 8px
+}
+.cardTitle{font-weight:800;letter-spacing:.25px}
+.searchWrap{position:relative;min-width:260px}
+.searchWrap input{
+  width:100%;padding:10px 36px 10px 14px;border:1px solid var(--border);border-radius:999px;outline:none;
+  transition:.15s;background:#fbfcff
+}
+.searchWrap input:focus{box-shadow:0 0 0 3px #7aa2ff33;border-color:#7aa2ff}
+.searchWrap::after{
+  content:'🔎';position:absolute;right:10px;top:50%;transform:translateY(-50%);opacity:.7;pointer-events:none
 }
 
-header {
-  text-align: center;
-  margin-bottom: 20px;
+/* Tables */
+.tableScroll{max-height:calc(var(--row-h)*10 + 1px);overflow:auto;border-radius:12px}
+table{width:100%;border-collapse:collapse}
+thead th{
+  font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);
+  padding:12px 10px;border-bottom:1px solid var(--border);background:#fbfcff
+}
+tbody td{padding:12px 10px;border-bottom:1px solid var(--border)}
+tbody tr:hover{background:#f9fbff}
+.ta-right{text-align:right}
+.actions{display:flex;gap:10px;justify-content:flex-end}
+.iconBtn{border:0;background:transparent;cursor:pointer;font-size:16px}
+.iconBtn.danger{color:var(--danger)}
+
+/* Add button – prettier & inside card bottom-right */
+.addBtn{
+  position:absolute;right:14px;bottom:14px;display:inline-flex;align-items:center;gap:8px;
+  padding:12px 16px;border:0;border-radius:14px;font-weight:800;letter-spacing:.2px;
+  background:linear-gradient(135deg,#22c55e,#10b981);color:#fff;box-shadow:0 10px 18px rgba(16,185,129,.25);
+  transform:translateZ(0);transition:transform .1s ease, box-shadow .2s ease;
+}
+.addBtn:hover{transform:translateY(-1px);box-shadow:0 12px 22px rgba(16,185,129,.28)}
+.addBtn:active{transform:translateY(0)}
+.addIcon{font-size:18px}
+.addText{display:none}
+@media (min-width:520px){ .addText{display:inline} }
+
+/* Tabs */
+.tabs{display:flex;gap:8px;margin-bottom:10px}
+.tab{
+  appearance:none;border:1px solid var(--border);background:#fff;padding:8px 14px;border-radius:999px;cursor:pointer;
+  font-weight:700;color:#394150;transition:.15s
+}
+.tab.active{background:#111827;color:#fff;border-color:#111827}
+.tabPanel.hidden{display:none}
+.summaryBox{
+  background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px;min-height:120px
 }
 
-header h1 {
-  font-size: 20px;
-  font-weight: 600;
+/* Modal */
+dialog{border:0;border-radius:16px;box-shadow:var(--shadow);width:min(720px,92vw);padding:0}
+dialog::backdrop{background:rgba(0,0,0,.45)}
+#propForm{padding:16px}
+#dlgTitle{font-size:18px;font-weight:800;margin:0 0 10px}
+.formGrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.field{display:flex;flex-direction:column;gap:6px}
+.field label{font-size:12px;color:var(--muted)}
+.field input,.field textarea{border:1px solid var(--border);border-radius:10px;padding:10px}
+.field input:focus,.field textarea:focus{outline:none;box-shadow:0 0 0 3px #7aa2ff33;border-color:#7aa2ff}
+.field-span2{grid-column:1 / -1}
+.modalFooter{display:flex;justify-content:flex-end;gap:10px;margin-top:14px}
+
+@media (max-width: 768px){
+  .controls{grid-template-columns:1fr}
+  .formGrid{grid-template-columns:1fr}
 }
 
-/* Buttons (common style) */
-.btn {
-  padding: 10px 18px;
-  border-radius: 6px;
-  font-weight: 600;
-  font-size: 14px;
-  border: 0;
-  cursor: pointer;
-  transition: background 0.2s ease, transform 0.2s ease, opacity 0.2s ease, box-shadow 0.2s ease;
-}
+/* === FIX: ให้หัวตารางกับข้อมูลกว้างเท่ากันเสมอ === */
 
-.btn:hover {
-  transform: scale(1.05);
-  opacity: 0.9;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-}
+/* 1) ใช้ fixed layout กับตารางทั้งสองตัว */
+#propTable, #selectedTable { table-layout: fixed; width: 100%; }
 
-.submit-btn {
-  background: #4f67ff;
-  color: #fff;
-}
+/* 2) ล็อกความกว้างคอลัมน์สำคัญ (#, Price, Rooms, Size, City, Actions) */
+#propTable th:nth-child(1),      #propTable td:nth-child(1),
+#selectedTable th:nth-child(1),  #selectedTable td:nth-child(1)  { width: 48px;  }  /* # */
+#propTable th:nth-child(3),      #propTable td:nth-child(3),
+#selectedTable th:nth-child(3),  #selectedTable td:nth-child(3)  { width: 140px; }  /* Price */
+#propTable th:nth-child(4),      #propTable td:nth-child(4),
+#selectedTable th:nth-child(4),  #selectedTable td:nth-child(4)  { width: 96px;  }  /* Rooms */
+#propTable th:nth-child(5),      #propTable td:nth-child(5),
+#selectedTable th:nth-child(5),  #selectedTable td:nth-child(5)  { width: 110px; }  /* Size */
+#propTable th:nth-child(6),      #propTable td:nth-child(6),
+#selectedTable th:nth-child(6),  #selectedTable td:nth-child(6)  { width: 120px; }  /* City */
+#propTable th:nth-child(7),      #propTable td:nth-child(7)                      { width: 120px; } /* Actions */
 
-/* Fetch Section */
-.fetch-section {
-  display: flex;
-  justify-content: center; /* centers the button horizontally */
-  margin-bottom: 24px;     /* spacing below section */
-}
+/* 3) จัดชิดขวาคอลัมน์ตัวเลข & กันปุ่มแตกบรรทัดใน Actions */
+#propTable td:nth-child(3),
+#propTable td:nth-child(4),
+#propTable td:nth-child(5),
+#selectedTable td:nth-child(3),
+#selectedTable td:nth-child(4),
+#selectedTable td:nth-child(5) { text-align: right; }
 
-.fetch-section .btn {
-  background: #ff9800;     /* orange color */
-  color: #fff;
-  border: 0;
-  padding: 10px 18px;
-  border-radius: 6px;
-  font-weight: 600;
-  font-size: 14px;
-  cursor: pointer;
-  transition: background 0.2s ease, transform 0.2s ease, opacity 0.2s ease, box-shadow 0.2s ease;
-}
+#propTable td:nth-child(7) { white-space: nowrap; } /* ปุ่ม Edit/Delete ไม่ตัดบรรทัด */
 
-.fetch-section .btn:hover {
-  background: #e68a00;     /* darker orange on hover */
-  transform: scale(1.05);
-  opacity: 0.9;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-}
-
-
-.add-btn {
-  background: #19ca66;
-  color: #fff;
-}
-
-/* Form Row */
-.form-row {
-  display: flex;
-  gap: 12px;
-  margin-bottom: 24px;
-}
-
-.input-text {
-  flex: 1;
-  padding: 10px 14px;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  font-size: 14px;
-}
-
-/* Table Section */
-.table-section {
-  background: #fff;
-  border: 1px solid #e5e7eb;
-  border-radius: 10px;
-  overflow-x: auto;
-  box-shadow: 0 6px 20px rgba(0,0,0,0.05);
-  font-size: 15px;
-}
-
-/* Table Header */
-.table-header {
-  display: grid;
-  grid-template-columns: 120px 1fr 140px 100px 100px 110px 120px 140px 100px;
-  padding: 18px 20px;
-  background: #f3f4f6;
-  font-weight: 600;
-  color: #111827;
-  border-bottom: 2px solid #e5e7eb;
-}
-
-/* Table Rows */
-.table-row {
-  display: grid;
-  grid-template-columns: 120px 1fr 140px 100px 100px 110px 120px 140px 100px;
-  padding: 18px 20px;
-  align-items: center;
-  border-bottom: 1px solid #f0f0f0;
-}
-
-.table-row:last-child {
-  border-bottom: 0;
-}
-
-/* Zebra stripes */
-.table-row:nth-child(even) {
-  background: #fafafa;
-}
-
-/* Action Buttons */
-.actions {
-  display: flex;
-  gap: 12px;
-  justify-content: flex-end;
-}
-
-.icon-btn {
-  background: transparent;
-  border: 0;
-  cursor: pointer;
-  font-size: 18px;
-  transition: transform 0.15s ease;
-}
-
-.icon-btn:hover {
-  transform: scale(1.2);
-  opacity: 0.8;
-}
-
-/* Add button wrapper */
-.add-wrap {
-  text-align: right;
-  margin-top: 16px;
-}
+/* (ตัวเลือกเสริม) ให้หัวคอลัมน์ตัวเลขชิดขวาด้วย */
+#propTable thead th:nth-child(3),
+#propTable thead th:nth-child(4),
+#propTable thead th:nth-child(5),
+#selectedTable thead th:nth-child(3),
+#selectedTable thead th:nth-child(4),
+#selectedTable thead th:nth-child(5) { text-align: right; }
