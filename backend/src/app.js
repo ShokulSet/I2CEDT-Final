@@ -13,5 +13,4 @@ app.use(cors());
 
 app.use("/qa", qaRoutes);
 
-
 export default app;

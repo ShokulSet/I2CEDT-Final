@@ -16,40 +16,49 @@ function httpPostJson(url, apiKey, payload) {
   return new Promise((resolve, reject) => {
     const data = Buffer.from(JSON.stringify(payload), "utf8");
     const u = new URL(url);
-    const req = https.request({
-      method: "POST",
-      hostname: u.hostname,
-      path: u.pathname + (u.search || ""),
-      headers: {
-        "Authorization": `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-        "Content-Length": data.length
-      }
-    }, res => {
-      let body = "";
-      res.on("data", d => body += d.toString("utf8"));
-      res.on("end", () => {
-        if (res.statusCode < 200 || res.statusCode >= 300) {
-          return reject(new Error(body));
-        }
-        try { resolve(JSON.parse(body)); }
-        catch (e) { reject(e); }
-      });
-    });
+    const req = https.request(
+      {
+        method: "POST",
+        hostname: u.hostname,
+        path: u.pathname + (u.search || ""),
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+          "Content-Length": data.length,
+        },
+      },
+      (res) => {
+        let body = "";
+        res.on("data", (d) => (body += d.toString("utf8")));
+        res.on("end", () => {
+          if (res.statusCode < 200 || res.statusCode >= 300) {
+            return reject(new Error(body));
+          }
+          try {
+            resolve(JSON.parse(body));
+          } catch (e) {
+            reject(e);
+          }
+        });
+      },
+    );
     req.on("error", reject);
     req.write(data);
     req.end();
   });
 }
 
-async function typhoonChat(messages, {
-  max_tokens = 512,
-  temperature = 0.2,
-  top_p = 0.95,
-  repetition_penalty = 1.05,
-} = {}) {
+async function typhoonChat(
+  messages,
+  {
+    max_tokens = 512,
+    temperature = 0.2,
+    top_p = 0.95,
+    repetition_penalty = 1.05,
+  } = {},
+) {
   if (!LLM_API_KEY) {
-    throw new Error('Please set LLM_API_KEY (export LLM_API_KEY=...)');
+    throw new Error("Please set LLM_API_KEY (export LLM_API_KEY=...)");
   }
   const payload = {
     model: MODEL,
@@ -61,7 +70,7 @@ async function typhoonChat(messages, {
     stream: false,
   };
   const json = await httpPostJson(LLM_ENDPOINT, LLM_API_KEY, payload);
-  const content = json?.choices?.[0]?.message?.content ?? '';
+  const content = json?.choices?.[0]?.message?.content ?? "";
   return content;
 }
 
@@ -110,8 +119,11 @@ async function llmTextToSql(question) {
     - available_from (DATE)
   `;
   const messages = [
-    { role: "system", content: "You are a SQL expert. Generate only a SQLite SELECT query." },
-    { role: "user", content: `${schemaPrompt}\n\nQuestion: ${question}` }
+    {
+      role: "system",
+      content: "You are a SQL expert. Generate only a SQLite SELECT query.",
+    },
+    { role: "user", content: `${schemaPrompt}\n\nQuestion: ${question}` },
   ];
   const sql = await typhoonChat(messages);
   return normalizeSql(sql);
@@ -124,10 +136,12 @@ function executeSql(sql) {
   if (!text) return [];
   const [headerLine, ...rows] = text.split("\n");
   const headers = headerLine.split(",");
-  return rows.map(line => {
+  return rows.map((line) => {
     const cols = line.split(",");
     const obj = {};
-    headers.forEach((h, i) => { obj[h] = cols[i]; });
+    headers.forEach((h, i) => {
+      obj[h] = cols[i];
+    });
     return obj;
   });
 }
@@ -138,7 +152,10 @@ function executeSql(sql) {
 async function llmAnswerFromRows(question, rows) {
   const messages = [
     { role: "system", content: "คุณคือผู้ช่วยอสังหาริมทรัพย์ ตอบสั้นๆ ชัดเจน" },
-    { role: "user", content: `คำถาม: ${question}\n\nข้อมูล: ${JSON.stringify(rows, null, 2)}` }
+    {
+      role: "user",
+      content: `คำถาม: ${question}\n\nข้อมูล: ${JSON.stringify(rows, null, 2)}`,
+    },
   ];
   return typhoonChat(messages);
 }
@@ -152,5 +169,5 @@ export {
   enforceLimit,
   llmTextToSql,
   executeSql,
-  llmAnswerFromRows
+  llmAnswerFromRows,
 };

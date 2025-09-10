@@ -8,59 +8,70 @@
  *     1) NL -> SQL (SQL only)
  *     2) Rows -> Thai sales-style answer grounded ONLY on rows
  */
-require('dotenv').config(); 
-const fs = require('fs');
-const path = require('path');
-const https = require('https');
-const { execFileSync } = require('child_process');
+require("dotenv").config();
+const fs = require("fs");
+const path = require("path");
+const https = require("https");
+const { execFileSync } = require("child_process");
 
 // ======== Config ========
-const CSV_PATH = process.env.CSV_PATH || 'listings.csv';
-const DB_PATH  = process.env.DB_PATH  || path.join(__dirname, 'listings_tmp.db'); // temp DB file
-const LLM_ENDPOINT = 'https://api.opentyphoon.ai/v1/chat/completions';
-const LLM_API_KEY  = process.env.LLM_API_KEY || ''; // export LLM_API_KEY=...
+const CSV_PATH = process.env.CSV_PATH || "listings.csv";
+const DB_PATH = process.env.DB_PATH || path.join(__dirname, "listings_tmp.db"); // temp DB file
+const LLM_ENDPOINT = "https://api.opentyphoon.ai/v1/chat/completions";
+const LLM_API_KEY = process.env.LLM_API_KEY || ""; // export LLM_API_KEY=...
 
-const MODEL = 'typhoon-v2.1-12b-instruct';
+const MODEL = "typhoon-v2.1-12b-instruct";
 
 // ======== Helpers ========
 function httpPostJson(url, apiKey, payload) {
   return new Promise((resolve, reject) => {
-    const data = Buffer.from(JSON.stringify(payload), 'utf8');
+    const data = Buffer.from(JSON.stringify(payload), "utf8");
     const u = new URL(url);
-    const req = https.request({
-      method: 'POST',
-      hostname: u.hostname,
-      path: u.pathname + (u.search || ''),
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-        'Content-Length': data.length
+    const req = https.request(
+      {
+        method: "POST",
+        hostname: u.hostname,
+        path: u.pathname + (u.search || ""),
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+          "Content-Length": data.length,
+        },
       },
-    }, res => {
-      let body = '';
-      res.on('data', d => { body += d.toString('utf8'); });
-      res.on('end', () => {
-        if (res.statusCode < 200 || res.statusCode >= 300) {
-          return reject(new Error(`HTTP ${res.statusCode}: ${body}`));
-        }
-        try { resolve(JSON.parse(body)); }
-        catch (e) { reject(e); }
-      });
-    });
-    req.on('error', reject);
+      (res) => {
+        let body = "";
+        res.on("data", (d) => {
+          body += d.toString("utf8");
+        });
+        res.on("end", () => {
+          if (res.statusCode < 200 || res.statusCode >= 300) {
+            return reject(new Error(`HTTP ${res.statusCode}: ${body}`));
+          }
+          try {
+            resolve(JSON.parse(body));
+          } catch (e) {
+            reject(e);
+          }
+        });
+      },
+    );
+    req.on("error", reject);
     req.write(data);
     req.end();
   });
 }
 
-async function typhoonChat(messages, {
-  max_tokens = 512,
-  temperature = 0.2,
-  top_p = 0.95,
-  repetition_penalty = 1.05,
-} = {}) {
+async function typhoonChat(
+  messages,
+  {
+    max_tokens = 512,
+    temperature = 0.2,
+    top_p = 0.95,
+    repetition_penalty = 1.05,
+  } = {},
+) {
   if (!LLM_API_KEY) {
-    throw new Error('Please set LLM_API_KEY (export LLM_API_KEY=...)');
+    throw new Error("Please set LLM_API_KEY (export LLM_API_KEY=...)");
   }
   const payload = {
     model: MODEL,
@@ -72,16 +83,18 @@ async function typhoonChat(messages, {
     stream: false,
   };
   const json = await httpPostJson(LLM_ENDPOINT, LLM_API_KEY, payload);
-  const content = json?.choices?.[0]?.message?.content ?? '';
+  const content = json?.choices?.[0]?.message?.content ?? "";
   return content;
 }
 
 // ======== CSV -> SQLite (using sqlite3 CLI) ========
 function ensureSqlite3Exists() {
   try {
-    execFileSync('sqlite3', ['-version'], { stdio: 'ignore' });
+    execFileSync("sqlite3", ["-version"], { stdio: "ignore" });
   } catch {
-    throw new Error('sqlite3 CLI not found. Please install SQLite (sqlite3) and ensure it is on PATH.');
+    throw new Error(
+      "sqlite3 CLI not found. Please install SQLite (sqlite3) and ensure it is on PATH.",
+    );
   }
 }
 
@@ -112,9 +125,8 @@ CREATE TABLE listings (
 );
 `;
 
-
   // 1) create schema
-  execFileSync('sqlite3', [dbPath], { input: schemaSQL });
+  execFileSync("sqlite3", [dbPath], { input: schemaSQL });
 
   // 2) import CSV (assumes headers present in CSV)
   //    We'll use .mode csv and .import, then delete the header row by detecting typical header strings.
@@ -123,7 +135,7 @@ CREATE TABLE listings (
 .import ${csvPath} listings
 `; // first row (headers) becomes a data row
 
-  execFileSync('sqlite3', [dbPath], { input: importScript });
+  execFileSync("sqlite3", [dbPath], { input: importScript });
 
   // 3) Try to delete the header row if present (best-effort)
   const cleanupSQL = `
@@ -131,17 +143,28 @@ DELETE FROM listings
 WHERE (location = 'location' AND type = 'type')
    OR (description = 'description' AND price = 'price');
 `;
-  execFileSync('sqlite3', [dbPath], { input: cleanupSQL });
+  execFileSync("sqlite3", [dbPath], { input: cleanupSQL });
 }
 
 // ======== Guardrail: normalize / validate / enforce LIMIT ========
 const DANGEROUS_VERBS = [
-  'insert', 'update', 'delete', 'drop', 'alter', 'create', 'attach',
-  'detach', 'replace', 'vacuum', 'pragma', 'grant', 'revoke'
+  "insert",
+  "update",
+  "delete",
+  "drop",
+  "alter",
+  "create",
+  "attach",
+  "detach",
+  "replace",
+  "vacuum",
+  "pragma",
+  "grant",
+  "revoke",
 ];
 
 function normalizeSql(text) {
-  if (typeof text !== 'string') return '';
+  if (typeof text !== "string") return "";
   let s = text.trim();
 
   // Prefer fenced code block
@@ -157,42 +180,42 @@ function normalizeSql(text) {
   }
 
   // Strip comments
-  s = s.replace(/--[^\n]*/g, '');
-  s = s.replace(/\/\*[\s\S]*?\*\//g, '');
+  s = s.replace(/--[^\n]*/g, "");
+  s = s.replace(/\/\*[\s\S]*?\*\//g, "");
 
   // Strip surrounding odd chars and trailing semicolon
-  s = s.replace(/^[`\s]+|[` \t\r\n]+$/g, '');
-  if (s.endsWith(';')) s = s.slice(0, -1).trim();
+  s = s.replace(/^[`\s]+|[` \t\r\n]+$/g, "");
+  if (s.endsWith(";")) s = s.slice(0, -1).trim();
 
   // Collapse whitespace
-  s = s.replace(/\s+/g, ' ').trim();
+  s = s.replace(/\s+/g, " ").trim();
   return s;
 }
 
 function isSafeSelect(sql) {
-  if (!sql || typeof sql !== 'string') return false;
+  if (!sql || typeof sql !== "string") return false;
 
   const s = normalizeSql(sql);
   if (!s) return false;
   const low = s.toLowerCase();
 
   // Must start with SELECT
-  if (!low.startsWith('select')) return false;
+  if (!low.startsWith("select")) return false;
 
   // No dangerous verbs anywhere
   for (const v of DANGEROUS_VERBS) {
-    if (new RegExp(`\\b${v}\\b`, 'i').test(low)) return false;
+    if (new RegExp(`\\b${v}\\b`, "i").test(low)) return false;
   }
 
   // No multiple statements
-  if (s.includes(';')) return false;
+  if (s.includes(";")) return false;
 
   // If FROM/JOIN present, table token must be 'listings' (alias allowed)
   const re = /\b(from|join)\b\s+([a-zA-Z_][\w]*)/gi;
   let m;
   while ((m = re.exec(low)) !== null) {
     const table = m[2];
-    if (table !== 'listings') return false;
+    if (table !== "listings") return false;
   }
   return true;
 }
@@ -208,7 +231,7 @@ function enforceLimit(sql, { defaultLimit = 50, maxLimit = 200 } = {}) {
   // Cap LIMIT n [OFFSET m]
   s = s.replace(/\blimit\s+(\d+)\s*([^\d]\S.*)?$/i, (_all, nStr, rest) => {
     const n = Math.min(parseInt(nStr, 10), maxLimit);
-    return `LIMIT ${n}${rest || ''}`;
+    return `LIMIT ${n}${rest || ""}`;
   });
   return s;
 }
@@ -231,7 +254,8 @@ async function llmTextToSql(question) {
   const shots = [
     {
       role: "user",
-      content: "แสดงรายการที่ราคาต่ำกว่า 2,000,000 และขนาดใหญ่กว่าค่าเฉลี่ยในกลุ่มราคานี้ จำกัด 50 แถว"
+      content:
+        "แสดงรายการที่ราคาต่ำกว่า 2,000,000 และขนาดใหญ่กว่าค่าเฉลี่ยในกลุ่มราคานี้ จำกัด 50 แถว",
     },
     {
       role: "assistant",
@@ -242,11 +266,11 @@ async function llmTextToSql(question) {
         "  AND size > (\n" +
         "    SELECT AVG(size) FROM listings WHERE price <= 2000000\n" +
         "  )\n" +
-        "LIMIT 50"
+        "LIMIT 50",
     },
     {
       role: "user",
-      content: "ขอดูอพาร์ตเมนต์ใน Cairo ที่มีอย่างน้อย 2 ห้องนอน จำกัด 20"
+      content: "ขอดูอพาร์ตเมนต์ใน Cairo ที่มีอย่างน้อย 2 ห้องนอน จำกัด 20",
     },
     {
       role: "assistant",
@@ -254,8 +278,8 @@ async function llmTextToSql(question) {
         "SELECT *\n" +
         "FROM listings\n" +
         "WHERE type = 'apartment' AND location = 'Cairo' AND bedrooms >= 2\n" +
-        "LIMIT 20"
-    }
+        "LIMIT 20",
+    },
   ];
 
   const userPrompt =
@@ -263,9 +287,9 @@ async function llmTextToSql(question) {
     `โปรดส่งคืนเป็น **SQL ที่ขึ้นต้นด้วย SELECT * เพียงคำสั่งเดียว** ตามกฎด้านบน (ห้ามมีคำอธิบายเพิ่ม)`;
 
   const txt = await typhoonChat([
-    { role: 'system', content: systemPrompt },
+    { role: "system", content: systemPrompt },
     ...shots,
-    { role: 'user', content: userPrompt },
+    { role: "user", content: userPrompt },
   ]);
 
   // Robust extraction: prefer fenced block; else first SELECT onward
@@ -278,23 +302,28 @@ async function llmTextToSql(question) {
 // ======== Execute SQL via sqlite3 CLI ========
 function executeSql(dbPath, sql) {
   // Use sqlite3 -json to fetch rows as JSON
-  const args = ['-json', dbPath, sql];
-  const out = execFileSync('sqlite3', args, { encoding: 'utf8' });
+  const args = ["-json", dbPath, sql];
+  const out = execFileSync("sqlite3", args, { encoding: "utf8" });
   if (!out) return [];
-  try { return JSON.parse(out); }
-  catch { return []; }
+  try {
+    return JSON.parse(out);
+  } catch {
+    return [];
+  }
 }
 
 // ======== Simple numeric summary ========
 function calcSummary(rows) {
   const out = { count: rows.length };
   const prices = rows
-    .map(r => r?.price)
-    .filter(v => typeof v === 'number' && Number.isFinite(v));
+    .map((r) => r?.price)
+    .filter((v) => typeof v === "number" && Number.isFinite(v));
   if (prices.length) {
     out.min_price = Math.min(...prices);
     out.max_price = Math.max(...prices);
-    out.avg_price = Math.round((prices.reduce((a, b) => a + b, 0) / prices.length) * 100) / 100;
+    out.avg_price =
+      Math.round((prices.reduce((a, b) => a + b, 0) / prices.length) * 100) /
+      100;
   }
   return out;
 }
@@ -305,15 +334,14 @@ async function llmAnswerFromRows(question, rows) {
   const summary = calcSummary(rowsForLLM);
 
   const systemPrompt =
-  "บทบาทของคุณ: ผู้ช่วยฝ่ายขายอสังหาริมทรัพย์ (ภาษาไทยเท่านั้น).\n" +
-  "• ใช้ข้อมูลเฉพาะใน 'rows' เท่านั้น ห้ามเดา\n" +
-  "• ถ้าข้อมูลไม่พอ ให้บอกว่า 'ไม่มีข้อมูลเพียงพอ'\n" +
-  "• ตอบกระชับ ใช้บูลเล็ตเมื่อเหมาะสม\n" +
-  "• แสดงจำนวนที่พบ และสรุปราคา (min/max/avg) ถ้ามี\n" +
-  "• เสนอ Top 3 ที่ตรงที่สุด พร้อมเหตุผลสั้น ๆ (พิจารณา type/location/price/size/bedrooms/bathrooms/available_from/available_year/available_month/available_day)\n" +
-  "• หากมีน้อยกว่า 3 ให้แสดงเท่าที่มี\n" +
-  "• หลีกเลี่ยงถ้อยคำเกินจริง และอย่ากล่าวอ้างสิ่งที่ไม่มีใน rows\n";
-
+    "บทบาทของคุณ: ผู้ช่วยฝ่ายขายอสังหาริมทรัพย์ (ภาษาไทยเท่านั้น).\n" +
+    "• ใช้ข้อมูลเฉพาะใน 'rows' เท่านั้น ห้ามเดา\n" +
+    "• ถ้าข้อมูลไม่พอ ให้บอกว่า 'ไม่มีข้อมูลเพียงพอ'\n" +
+    "• ตอบกระชับ ใช้บูลเล็ตเมื่อเหมาะสม\n" +
+    "• แสดงจำนวนที่พบ และสรุปราคา (min/max/avg) ถ้ามี\n" +
+    "• เสนอ Top 3 ที่ตรงที่สุด พร้อมเหตุผลสั้น ๆ (พิจารณา type/location/price/size/bedrooms/bathrooms/available_from/available_year/available_month/available_day)\n" +
+    "• หากมีน้อยกว่า 3 ให้แสดงเท่าที่มี\n" +
+    "• หลีกเลี่ยงถ้อยคำเกินจริง และอย่ากล่าวอ้างสิ่งที่ไม่มีใน rows\n";
 
   const content =
     `คำถามของลูกค้า:\n${question}\n\n` +
@@ -324,10 +352,13 @@ async function llmAnswerFromRows(question, rows) {
     "2) Top 3 ที่แนะนำ (price, location, type, size, bedrooms, bathrooms, available_from + เหตุผลย่อ)\n" +
     "3) ข้อสังเกต/ข้อจำกัด (ถ้ามี)\n";
 
-  const txt = await typhoonChat([
-    { role: 'system', content: systemPrompt },
-    { role: 'user',   content: content },
-  ], { max_tokens: 700, temperature: 0.3 });
+  const txt = await typhoonChat(
+    [
+      { role: "system", content: systemPrompt },
+      { role: "user", content: content },
+    ],
+    { max_tokens: 700, temperature: 0.3 },
+  );
 
   return txt;
 }
@@ -336,7 +367,7 @@ async function llmAnswerFromRows(question, rows) {
 async function askAndAnswer(question) {
   // 1) NL -> SQL
   const rawSql = await llmTextToSql(question);
-  console.log('\n--- Raw SQL From LLM ---\n', rawSql);
+  console.log("\n--- Raw SQL From LLM ---\n", rawSql);
 
   // 2) normalize + validate + enforce limit
   const cleanSql = normalizeSql(rawSql);
@@ -344,7 +375,7 @@ async function askAndAnswer(question) {
     throw new Error(`Unsafe/invalid SQL generated:\n${rawSql}`);
   }
   const finalSql = enforceLimit(cleanSql, { defaultLimit: 50, maxLimit: 200 });
-  console.log('\n--- Final SQL (normalized + limit) ---\n', finalSql);
+  console.log("\n--- Final SQL (normalized + limit) ---\n", finalSql);
 
   // 3) Execute
   const rows = executeSql(DB_PATH, finalSql);
@@ -353,7 +384,7 @@ async function askAndAnswer(question) {
 
   // 4) Sales-style Thai answer grounded on rows
   const answer = await llmAnswerFromRows(question, rows);
-  console.log('\n--- Final Answer (Thai, grounded on rows) ---\n', answer);
+  console.log("\n--- Final Answer (Thai, grounded on rows) ---\n", answer);
 
   return { sql: finalSql, rows, answer };
 }
@@ -364,13 +395,62 @@ async function askAndAnswer(question) {
     if (!fs.existsSync(CSV_PATH)) {
       // create a tiny CSV like the Python sample
       const sample = [
-        ['price','description','location','type','size','bedrooms','bathrooms','available_from'],
-        [3200000,'2BR in Cairo','Cairo','apartment',110,2,1,'2025-10-01'],
-        [15000000,'Villa New Cairo','New Cairo','villa',420,5,4,'2025-09-20'],
-        [1200000,'Studio near metro','Maadi','studio',45,0,1,'2025-11-15'],
-        [6500000,'Seaview duplex','Alexandria','duplex',180,3,2,'2025-12-01'],
+        [
+          "price",
+          "description",
+          "location",
+          "type",
+          "size",
+          "bedrooms",
+          "bathrooms",
+          "available_from",
+        ],
+        [
+          3200000,
+          "2BR in Cairo",
+          "Cairo",
+          "apartment",
+          110,
+          2,
+          1,
+          "2025-10-01",
+        ],
+        [
+          15000000,
+          "Villa New Cairo",
+          "New Cairo",
+          "villa",
+          420,
+          5,
+          4,
+          "2025-09-20",
+        ],
+        [
+          1200000,
+          "Studio near metro",
+          "Maadi",
+          "studio",
+          45,
+          0,
+          1,
+          "2025-11-15",
+        ],
+        [
+          6500000,
+          "Seaview duplex",
+          "Alexandria",
+          "duplex",
+          180,
+          3,
+          2,
+          "2025-12-01",
+        ],
       ];
-      fs.writeFileSync(CSV_PATH, sample.map(r => r.join(',')).join('\n'), 'utf8');
+      fs.writeFileSync(
+        CSV_PATH,
+        sample.map((r) => r.join(",")).join("\n"),
+        "utf8",
+      );
       console.log(`Created sample CSV at ${CSV_PATH}`);
     }
 
@@ -379,21 +459,21 @@ async function askAndAnswer(question) {
 
     // Example questions
     const questions = [
-      'มีรายการใดบ้างที่มีขนาดมากกว่า 150 ตร.ม. และมีอย่างน้อย 2 ห้องน้ำ',
-      'มีงบประมาณ 8,000,000 มีที่ไหนได้เนื้อที่เยอะๆ บ้าง'
+      "มีรายการใดบ้างที่มีขนาดมากกว่า 150 ตร.ม. และมีอย่างน้อย 2 ห้องน้ำ",
+      "มีงบประมาณ 8,000,000 มีที่ไหนได้เนื้อที่เยอะๆ บ้าง",
     ];
 
     for (const q of questions) {
       try {
-        console.log('\n==============================');
-        console.log('Q:', q);
+        console.log("\n==============================");
+        console.log("Q:", q);
         await askAndAnswer(q);
       } catch (err) {
-        console.error('Error:', err.message || err);
+        console.error("Error:", err.message || err);
       }
     }
   } catch (e) {
-    console.error('Fatal:', e.message || e);
+    console.error("Fatal:", e.message || e);
     process.exit(1);
   } finally {
     // Keep DB file for inspection; uncomment to auto-delete:

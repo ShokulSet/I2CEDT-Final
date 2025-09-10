@@ -1,6 +1,10 @@
 import {
-  normalizeSql, isSafeSelect, enforceLimit,
-  llmTextToSql, executeSql, llmAnswerFromRows
+  normalizeSql,
+  isSafeSelect,
+  enforceLimit,
+  llmTextToSql,
+  executeSql,
+  llmAnswerFromRows,
 } from "../services/qaService.js";
 import { DB_PATH } from "../config/db.js";
 

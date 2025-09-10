@@ -2,8 +2,10 @@ import fs from "fs";
 import path from "path";
 import { execFileSync } from "child_process";
 
-const CSV_PATH = process.env.CSV_PATH || path.join(process.cwd(), "listings.csv");
-const DB_PATH  = process.env.DB_PATH  || path.join(process.cwd(), "listings_tmp.db");
+const CSV_PATH =
+  process.env.CSV_PATH || path.join(process.cwd(), "listings.csv");
+const DB_PATH =
+  process.env.DB_PATH || path.join(process.cwd(), "listings_tmp.db");
 
 function ensureSqlite3Exists() {
   try {
