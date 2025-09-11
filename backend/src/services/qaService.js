@@ -1,13 +1,14 @@
+// src/services/qaService.js
 import https from "https";
-import { execFileSync } from "child_process";
+// NOTE: no more child_process or sqlite3 CLI
+import { select } from "../database/db.js";
 
 // ---------------------
 // Config
 // ---------------------
 const LLM_ENDPOINT = "https://api.opentyphoon.ai/v1/chat/completions";
 const MODEL = "typhoon-v2.1-12b-instruct";
-const LLM_API_KEY = process.env.LLM_API_KEY || "";
-const DB_PATH = process.env.DB_PATH || "listings_tmp.db";
+const LLM_API_KEY = process.env.LLM_API_KEY;
 
 // ---------------------
 // Low-level HTTP + LLM
@@ -51,7 +52,7 @@ function httpPostJson(url, apiKey, payload) {
 async function typhoonChat(
   messages,
   {
-    max_tokens = 512,
+    max_tokens = 1024,
     temperature = 0.2,
     top_p = 0.95,
     repetition_penalty = 1.05,
@@ -77,8 +78,56 @@ async function typhoonChat(
 // ---------------------
 // SQL Guardrails
 // ---------------------
-function normalizeSql(sql) {
-  return sql.replace(/\s+/g, " ").trim();
+function normalizeSql(text) {
+  if (typeof text !== "string") return "";
+  let s = text.trim();
+
+  // 1) Prefer fenced code blocks labeled sql|sqlite (case-insensitive)
+  //    Handles: ```sql ...```, ```SQL ...```, ```sqlite ...```
+  {
+    const m = s.match(/```(?:\s*)(sql|sqlite)\b[^\n]*\n([\s\S]*?)```/i);
+    if (m) s = m[2].trim();
+    else {
+      // If no labeled fence, try any fence and only keep if it contains SELECT
+      const m2 = s.match(/```([\s\S]*?)```/);
+      if (m2 && /select\s/i.test(m2[1])) s = m2[1].trim();
+    }
+  }
+
+  // 2) If still mixed prose, keep from FIRST SELECT onward
+  {
+    const m = s.match(/(select[\s\S]*)$/i);
+    s = (m ? m[1] : s).trim();
+  }
+
+  // 3) Strip sqlite shell prompts and continuations:
+  //    e.g., "sqlite> SELECT ...", "...> AND price > 0"
+  s = s
+    .split(/\r?\n/)
+    .map((line) =>
+      line.replace(
+        /^\s*(sqlite>|\.shell\b|\.headers\b|\.mode\b|\.\w+>|\.\w+)\s*/i,
+        "",
+      ),
+    )
+    .map((line) => line.replace(/^\s*\.\.\.>\s*/, "")) // generic continuation prompt
+    .join("\n");
+
+  // 4) Remove comments (line + block)
+  s = s.replace(/--[^\n]*/g, "");
+  s = s.replace(/\/\*[\s\S]*?\*\//g, "");
+
+  // 5) Drop surrounding backticks/whitespace and trailing semicolon
+  s = s.replace(/^[`\s]+|[` \t\r\n]+$/g, "");
+  if (s.endsWith(";")) s = s.slice(0, -1);
+
+  // 6) Collapse whitespace
+  s = s.replace(/\s+/g, " ").trim();
+
+  // 7) Final safety: ensure it's a SELECT; otherwise empty
+  if (!/^select\b/i.test(s)) return "";
+
+  return s;
 }
 
 function isSafeSelect(sql) {
@@ -107,21 +156,24 @@ function enforceLimit(sql, limit = 20) {
 // SQL Generation + Exec
 // ---------------------
 async function llmTextToSql(question) {
+  // Match your actual schema exactly (per your message)
   const schemaPrompt = `
-  ตาราง listings(columns):
-    - price (INTEGER, ราคา)
+  ตาราง listings (columns):
+    - id (INTEGER, PRIMARY KEY)
+    - price (REAL, ราคา)
     - description (TEXT, คำอธิบาย)
     - location (TEXT, ทำเล)
     - type (TEXT, apartment/villa/studio/duplex)
-    - size (INTEGER, พื้นที่ ตร.ม.)
+    - size (REAL, พื้นที่ ตร.ม.)
     - bedrooms (INTEGER)
     - bathrooms (INTEGER)
-    - available_from (DATE)
+    - available_from (TEXT, วันที่พร้อมเข้าอยู่)
   `;
   const messages = [
     {
       role: "system",
-      content: "You are a SQL expert. Generate only a SQLite SELECT query.",
+      content:
+        "You are a SQL expert. Generate only a valid SQLite SELECT query over the 'listings' table. No comments, no explanation.",
     },
     { role: "user", content: `${schemaPrompt}\n\nQuestion: ${question}` },
   ];
@@ -129,21 +181,18 @@ async function llmTextToSql(question) {
   return normalizeSql(sql);
 }
 
-function executeSql(sql) {
+/**
+ * Executes a SELECT safely via the sqlite driver (no shelling out).
+ * Returns rows as array of objects.
+ */
+async function executeSql(sql) {
   sql = enforceLimit(sql, 20);
-  const out = execFileSync("sqlite3", ["-header", "-csv", DB_PATH, sql]);
-  const text = out.toString("utf8").trim();
-  if (!text) return [];
-  const [headerLine, ...rows] = text.split("\n");
-  const headers = headerLine.split(",");
-  return rows.map((line) => {
-    const cols = line.split(",");
-    const obj = {};
-    headers.forEach((h, i) => {
-      obj[h] = cols[i];
-    });
-    return obj;
-  });
+  if (!isSafeSelect(sql)) {
+    throw new Error("Unsafe or non-SELECT SQL rejected.");
+  }
+  // No params here because the LLM outputs a complete SELECT.
+  const rows = await select(sql, []);
+  return rows ?? [];
 }
 
 // ---------------------
@@ -154,7 +203,11 @@ async function llmAnswerFromRows(question, rows) {
     { role: "system", content: "คุณคือผู้ช่วยอสังหาริมทรัพย์ ตอบสั้นๆ ชัดเจน" },
     {
       role: "user",
-      content: `คำถาม: ${question}\n\nข้อมูล: ${JSON.stringify(rows, null, 2)}`,
+      content: `คำถาม: ${question}\n\nข้อมูล (อิงจากฐานข้อมูลเท่านั้น):\n${JSON.stringify(
+        rows,
+        null,
+        2,
+      )}`,
     },
   ];
   return typhoonChat(messages);
@@ -168,6 +221,6 @@ export {
   isSafeSelect,
   enforceLimit,
   llmTextToSql,
-  executeSql,
+  executeSql, // now async
   llmAnswerFromRows,
 };

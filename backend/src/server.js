@@ -1,5 +1,5 @@
 import "dotenv/config";
-import "./config/db.js";
+import "./database/db.js";
 
 import app from "./app.js";
 
