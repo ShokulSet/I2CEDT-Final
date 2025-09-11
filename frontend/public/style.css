@@ -257,6 +257,7 @@ tbody tr:hover {
   border-radius: var(--radius);
   padding: 16px;
   min-height: 120px;
+  white-space: pre-line;
 }
 
 /* Modal */
@@ -391,3 +392,20 @@ dialog::backdrop {
 #selectedTable thead th:nth-child(5) {
   text-align: right;
 }
+
+#resultPane {
+  overflow: hidden;
+  max-height: 0;
+  opacity: 0;
+  transform: translateY(-6px);
+  transition: max-height 0.3s ease, opacity 0.3s ease, transform 0.3s ease;
+}
+#resultPane.expanded {
+  max-height: 1200px;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+#expandBtn .chev { display: inline-block; transition: transform .3s ease; }
+#expandBtn.is-open .chev { transform: rotate(180deg); }
+

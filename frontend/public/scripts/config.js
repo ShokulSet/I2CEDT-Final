@@ -1,1 +1,1 @@
-export const API_BASE = "/api"; // เปลี่ยนได้ตอนต่อ backend จริง
+export const BACKEND_URL = "http://localhost:3222";; // TODO change to ec2 ip when Ready

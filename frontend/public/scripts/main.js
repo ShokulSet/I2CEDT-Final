@@ -1,8 +1,9 @@
+import { BACKEND_URL } from "./config.js";
 import { renderTable, openCreate, bindForm } from "./table.js";
 
 const promptBox = document.getElementById("prompt");
 const expandBtn = document.getElementById("expandBtn");
-const actionBtn = document.getElementById("actionBtn");
+const submitBtn = document.getElementById("submitBtn");
 const resultPane = document.getElementById("resultPane");
 const summaryBox = document.getElementById("summaryBox");
 const selectedTableBody = document.querySelector("#selectedTable tbody");
@@ -13,6 +14,7 @@ const tabSummary = document.getElementById("tab-summary");
 const tabSelected = document.getElementById("tab-selected");
 
 let filterText = "";
+let is_expanded = false;
 
 async function boot() {
   // Search on top-right of table
@@ -30,11 +32,18 @@ async function boot() {
   await renderTable();
 
   // Prompt expand only
-  expandBtn.addEventListener("click", () =>
-    promptBox.classList.toggle("expanded"),
-  );
+  expandBtn.addEventListener("click", () => {
+    is_expanded = !is_expanded;
+
+    // swap class for transition instead of .hidden
+    resultPane.classList.toggle("expanded", is_expanded);
+
+    expandBtn.setAttribute("aria-expanded", String(is_expanded));
+    expandBtn.classList.toggle("is-open", is_expanded);
+  });
+
   // Analyze triggers backend then show tabs
-  actionBtn.addEventListener("click", analyze);
+  submitBtn.addEventListener("click", analyze);
 
   // Tabs behavior
   tabButtons.forEach((btn) => {
@@ -53,30 +62,57 @@ async function analyze() {
   const text = promptBox.value.trim();
   if (!text) return;
 
-  // demo data; replace with real API when ready
-  const matches = Array.from({ length: 12 }).map((_, i) => ({
-    name: `Demo ${i + 1}`,
-    price: 1000000 + i * 100000,
-    rooms: (i % 4) + 1,
-    size: 60 + i * 5,
-    city: "Cairo",
-  }));
+  let payload;
+  try {
+    const res = await fetch(`${BACKEND_URL}/qa/analyze`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ prompt: text }),
+    });
+    payload = await res.json();
+    if (!res.ok) throw new Error(payload?.error || res.statusText);
+  } catch (e) {
+    console.error(e);
+    // graceful fallback if backend is not up
+    payload = {
+      sql: "-- backend unavailable --",
+      rows: [],
+      summary: "Backend unreachable. Check /qa/analyze.",
+    };
+  }
 
+  // --- summary pane ---
   summaryBox.textContent = [
-    `Request: ${text}`,
-    `Candidates: ${matches.length}`,
-    `Note: replace with backend explanation here.`,
+    payload.summary || "",
   ].join("\n");
 
+  // --- selected table (DB → UI mapping) ---
   selectedTableBody.innerHTML = "";
-  matches.forEach((m, i) => {
+  (payload.rows || []).forEach((r, i) => {
+    const name = r.description ?? "";
+    const price = r.price ?? "";
+    const rooms = r.bedrooms ?? "";
+    const size  = r.size ?? "";
+    const city  = r.location ?? "";
+
     const tr = document.createElement("tr");
-    tr.innerHTML = `<td>${i + 1}</td><td>${m.name}</td><td>${m.price}</td><td>${m.rooms}</td><td>${m.size}</td><td>${m.city}</td>`;
+    tr.innerHTML = `
+      <td>${i + 1}</td>
+      <td>${name}</td>
+      <td>${price}</td>
+      <td>${rooms}</td>
+      <td>${size}</td>
+      <td>${city}</td>`;
     selectedTableBody.appendChild(tr);
   });
 
-  resultPane.hidden = false;
-  // default to show "selected table" after action
+  // --- open result pane with animation (use class, not .hidden) ---
+  resultPane.classList.add("expanded");
+  expandBtn.hidden = false;                       // keep the button visible
+  expandBtn.setAttribute("aria-expanded", "true");
+  expandBtn.classList.add("is-open");             // if you rotate a chevron
+
+  // --- switch to "selected table" tab ---
   document.querySelector(".tab.active")?.classList.remove("active");
   document.querySelector('.tab[data-tab="selected"]').classList.add("active");
   tabSummary.classList.add("hidden");

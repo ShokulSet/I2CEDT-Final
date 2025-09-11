@@ -3,24 +3,24 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Sale Helper bla bla</title>
+    <title>Real Estate Sale Helper</title>
     <link rel="stylesheet" href="./style.css" />
   </head>
   <body>
     <div class="wrap">
-      <header><h1>Sale Helper bla bla</h1></header>
+      <header><h1>Real Estate Sale Helper</h1></header>
 
       <!-- Controls -->
       <section class="controls" aria-label="prompt and actions">
-        <textarea id="prompt" class="prompt" placeholder="prompt"></textarea>
-        <button class="btn primary" id="expandBtn" title="Expand prompt">
+        <textarea id="prompt" class="prompt" placeholder="prompt . . . "></textarea>
+        <button class="btn primary" id="expandBtn" title="Expand prompt" hidden>
           ▼
         </button>
-        <button class="btn ghost" id="actionBtn" title="Analyze">Action</button>
+        <button class="btn primary" id="submitBtn" title="Analyze">Submit</button>
       </section>
 
       <!-- Tabs: llm summary / selected table -->
-      <section id="resultPane" hidden>
+      <section id="resultPane">
         <div class="tabs">
           <button class="tab active" data-tab="summary">llm summary</button>
           <button class="tab" data-tab="selected">selected table</button>
