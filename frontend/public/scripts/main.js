@@ -30,6 +30,7 @@ async function boot() {
   document.getElementById("addBtn").addEventListener("click", openCreate);
   bindForm(() => renderTable(filterText));
   await renderTable();
+  
 
   // Prompt expand only
   expandBtn.addEventListener("click", () => {
