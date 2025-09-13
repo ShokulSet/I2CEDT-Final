@@ -2,15 +2,25 @@
 
 Web application สำหรับการช่วย Sale หาอสังหาให้ลูกค้าด้วย LLM กับฐานข้อมูลขนาดใหญ่
 
-## start frontend command
+## Setup frontend command
 
 ```bash
+cd frontend
+npm i
+npm start
+```
+
+## Setup backend command
+
+```bash
+cd backend
+npm i
 npm start
 ```
 
 ## Progressions
 
-- [ ] Frontend
-- [ ] Backend
-- [ ] Database
-- [ ] AI
+- [x] Frontend
+- [x] Backend
+- [x] Database
+- [x] AI
