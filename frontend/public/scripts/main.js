@@ -7,6 +7,7 @@ const submitBtn = document.getElementById("submitBtn");
 const resultPane = document.getElementById("resultPane");
 const summaryBox = document.getElementById("summaryBox");
 const selectedTableBody = document.querySelector("#selectedTable tbody");
+const loadingOverlay = document.querySelector("#loadingOverlay");
 
 // Tabs
 const tabButtons = [...document.querySelectorAll(".tab")];
@@ -14,7 +15,7 @@ const tabSummary = document.getElementById("tab-summary");
 const tabSelected = document.getElementById("tab-selected");
 
 let filterText = "";
-let is_expanded = false;
+let is_expanded = true;
 
 async function boot() {
   // Search on top-right of table
@@ -30,7 +31,6 @@ async function boot() {
   document.getElementById("addBtn").addEventListener("click", openCreate);
   bindForm(() => renderTable(filterText));
   await renderTable();
-  
 
   // Prompt expand only
   expandBtn.addEventListener("click", () => {
@@ -56,12 +56,17 @@ async function boot() {
       tabSelected.classList.toggle("hidden", t !== "selected");
     });
   });
+  loadingOverlay.classList.add("hidden");
 }
 boot();
 
 async function analyze() {
   const text = promptBox.value.trim();
-  if (!text) return;
+  if (!text) {
+    alert("cannot submit empty prompt");
+    return;
+  }
+  loadingOverlay.classList.remove("hidden");
 
   let payload;
   try {
@@ -74,7 +79,6 @@ async function analyze() {
     if (!res.ok) throw new Error(payload?.error || res.statusText);
   } catch (e) {
     console.error(e);
-    // graceful fallback if backend is not up
     payload = {
       sql: "-- backend unavailable --",
       rows: [],
@@ -82,24 +86,20 @@ async function analyze() {
     };
   }
 
-  // --- summary pane ---
-  summaryBox.textContent = [
-    payload.summary || "",
-  ].join("\n");
+  summaryBox.textContent = [payload.summary || ""].join("\n");
 
-  // --- selected table (DB → UI mapping) ---
   selectedTableBody.innerHTML = "";
   (payload.rows || []).forEach((r, i) => {
-    const name = r.description ?? "";
+    const caption = r.caption ?? "";
     const price = r.price ?? "";
     const rooms = r.bedrooms ?? "";
-    const size  = r.size ?? "";
-    const city  = r.location ?? "";
+    const size = r.size ?? "";
+    const city = r.location ?? "";
 
     const tr = document.createElement("tr");
     tr.innerHTML = `
       <td>${i + 1}</td>
-      <td>${name}</td>
+      <td>${caption}</td>
       <td>${price}</td>
       <td>${rooms}</td>
       <td>${size}</td>
@@ -107,15 +107,14 @@ async function analyze() {
     selectedTableBody.appendChild(tr);
   });
 
-  // --- open result pane with animation (use class, not .hidden) ---
   resultPane.classList.add("expanded");
-  expandBtn.hidden = false;                       // keep the button visible
+  expandBtn.hidden = false;
   expandBtn.setAttribute("aria-expanded", "true");
-  expandBtn.classList.add("is-open");             // if you rotate a chevron
+  expandBtn.classList.add("is-open");
 
-  // --- switch to "selected table" tab ---
   document.querySelector(".tab.active")?.classList.remove("active");
   document.querySelector('.tab[data-tab="selected"]').classList.add("active");
   tabSummary.classList.add("hidden");
   tabSelected.classList.remove("hidden");
+  loadingOverlay.classList.add("hidden");
 }

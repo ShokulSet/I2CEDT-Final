@@ -36,11 +36,11 @@ async function request(endpoint, { method = "GET", json, headers = {} } = {}) {
 function uiFromDb(r) {
   return {
     id: r.id,
-    name: r.description ?? "",     // UI expects "name"
+    caption: r.caption ?? "", // UI expects "name"
     price: r.price ?? 0,
-    rooms: r.bedrooms ?? 0,        // UI expects "rooms"
+    rooms: r.bedrooms ?? 0, // UI expects "rooms"
     size: r.size ?? 0,
-    city: r.location ?? "",        // UI expects "city"
+    city: r.location ?? "", // UI expects "city"
     // keep raw fields in case you later show them
     _raw: r,
   };
@@ -49,7 +49,7 @@ function uiFromDb(r) {
 function dbFromUi(p) {
   return {
     // keep falsy/optional fields safe
-    description: p.name ?? "",
+    description: p.description ?? "",
     price: Number.isFinite(+p.price) ? +p.price : 0,
     location: p.city ?? "",
     type: p.type ?? null,
@@ -57,6 +57,7 @@ function dbFromUi(p) {
     bedrooms: Number.isFinite(+p.rooms) ? +p.rooms : null,
     bathrooms: Number.isFinite(+p.bathrooms) ? +p.bathrooms : null,
     available_from: p.available_from ?? null,
+    caption: p.caption ?? "",
   };
 }
 

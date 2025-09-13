@@ -9,19 +9,36 @@
   <body>
     <div class="wrap">
       <header>
-  
-  <h1>🏺Real Estate Sale Helper</h1>
-</header>
-  
+        <h1>🏺Real Estate Sale Helper</h1>
+      </header>
+      <div id="loadingOverlay">
+        <div class="spinner"></div>
+      </div>
 
       <!-- Controls -->
       <section class="controls" aria-label="prompt and actions">
-        <img src="/assets/img/1666969004_111790-removebg-preview.png" alt="" class="pyramid-head" />
-        <textarea id="prompt" class="prompt" placeholder="prompt . . . "></textarea>
+        <a
+          href="https://github.com/ShokulSet/I2CEDT-Final"
+          target="_blank"
+          title="Click for suprise"
+        >
+          <img
+            src="/assets/img/1666969004_111790-removebg-preview.png"
+            alt=""
+            class="pyramid-head"
+          />
+        </a>
+        <textarea
+          id="prompt"
+          class="prompt"
+          placeholder="prompt . . . "
+        ></textarea>
         <button class="btn primary" id="expandBtn" title="Expand prompt" hidden>
           ▼
         </button>
-        <button class="btn primary" id="submitBtn" title="Analyze">Submit</button>
+        <button class="btn primary" id="submitBtn" title="Analyze">
+          Submit
+        </button>
       </section>
 
       <!-- Tabs: llm summary / selected table -->
@@ -37,7 +54,7 @@
 
         <div class="tabPanel hidden" id="tab-selected">
           <div class="card">
-            <hr class="glyph-divider">
+            <hr class="glyph-divider" />
 
             <div class="tableScroll">
               <table id="selectedTable">
@@ -101,26 +118,28 @@
         <h3 id="dlgTitle">Add data (Create)</h3>
         <div class="formGrid">
           <div class="field">
-            <label>Name</label><input id="name" name="name" required />
+            <label>Name</label>
+            <input id="caption" name="caption" required />
           </div>
           <div class="field">
-            <label>Price</label
-            ><input id="price" name="price" type="number" min="0" required />
+            <label>Price</label>
+            <input id="price" name="price" type="number" min="0" required />
           </div>
           <div class="field">
-            <label>Rooms</label
-            ><input id="rooms" name="rooms" type="number" min="0" required />
+            <label>Rooms</label>
+            <input id="rooms" name="rooms" type="number" min="0" required />
           </div>
           <div class="field">
-            <label>Size</label
-            ><input id="size" name="size" type="number" min="0" required />
+            <label>Size</label>
+            <input id="size" name="size" type="number" min="0" required />
           </div>
           <div class="field">
-            <label>City</label><input id="city" name="city" />
+            <label>City</label>
+            <input id="city" name="city" />
           </div>
           <div class="field field-span2">
-            <label>Description</label
-            ><textarea id="desc" name="desc" rows="3"></textarea>
+            <label>Description</label>
+            <textarea id="desc" name="desc" rows="3"></textarea>
           </div>
         </div>
         <div class="modalFooter">
@@ -133,7 +152,7 @@
     <template id="rowTmpl">
       <tr>
         <td class="rowIndex"></td>
-        <td class="rowName"></td>
+        <td class="rowCaption"></td>
         <td class="rowPrice"></td>
         <td class="rowRooms"></td>
         <td class="rowSize"></td>
@@ -148,6 +167,5 @@
     </template>
 
     <script type="module" src="./scripts/main.js"></script>
-
   </body>
 </html>

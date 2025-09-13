@@ -22,11 +22,13 @@ export const createListing = async (req, res) => {
       bedrooms,
       bathrooms,
       available_from,
+      caption,
     } = req.body;
+
     const db = await getDb();
     const result = await db.run(
-      `INSERT INTO listings (description, price, location, type, size, bedrooms, bathrooms, available_from)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO listings (description, price, location, type, size, bedrooms, bathrooms, available_from, caption)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         description,
         price,
@@ -36,8 +38,10 @@ export const createListing = async (req, res) => {
         bedrooms,
         bathrooms,
         available_from,
+        caption,
       ],
     );
+
     res.status(201).json({ id: result.lastID });
   } catch (err) {
     console.error(err);
@@ -57,11 +61,13 @@ export const updateListing = async (req, res) => {
       bedrooms,
       bathrooms,
       available_from,
+      caption,
     } = req.body;
+
     const db = await getDb();
     await db.run(
       `UPDATE listings
-       SET description=?, price=?, location=?, type=?, size=?, bedrooms=?, bathrooms=?, available_from=?
+       SET description=?, price=?, location=?, type=?, size=?, bedrooms=?, bathrooms=?, available_from=?, caption=?
        WHERE id=?`,
       [
         description,
@@ -72,9 +78,11 @@ export const updateListing = async (req, res) => {
         bedrooms,
         bathrooms,
         available_from,
+        caption,
         id,
       ],
     );
+
     res.json({ ok: true });
   } catch (err) {
     console.error(err);
