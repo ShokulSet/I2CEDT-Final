@@ -1,1 +1,1 @@
-export const BACKEND_URL = "http://localhost:3222"; // TODO change to ec2 ip when Ready
+export const BACKEND_URL = `${window.location.protocol}//${window.location.hostname}:3222`;
